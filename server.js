@@ -3,7 +3,6 @@ import cors from 'cors';
 
 const app = express();
 
-// Úplne voľné nastavenie pre lokálne testovanie aj produkciu
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
