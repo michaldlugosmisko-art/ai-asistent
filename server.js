@@ -3,16 +3,18 @@ import cors from 'cors';
 
 const app = express();
 
-// Úplne voľné nastavenie pre CORS
+// Spracovanie CORS pre lokálny web aj produkciu
 app.use(cors());
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', '*');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
   next();
 });
 
-// Prijíma JSON aj Plain Text z prehliadača
 app.use(express.json());
 app.use(express.text());
 
@@ -76,6 +78,12 @@ async function callGroq(messages) {
   return data.choices?.[0]?.message?.content;
 }
 
+// Základná testovacia trasa
+app.get('/', (req, res) => {
+  res.send('AI Backend beží v poriadku!');
+});
+
+// Hlavná trasa pre AI chat
 app.post('/api/chat', async (req, res) => {
   let bodyData = req.body;
   if (typeof bodyData === 'string') {
