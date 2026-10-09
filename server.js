@@ -3,15 +3,13 @@ import cors from 'cors';
 
 const app = express();
 
-// Povolíme prístup pre všetky domény, porty aj lokálne servery
+// Povolíme CORS pre úplne všetky domény aj lokálne protokoly
 app.use(cors({
-  origin: true,
-  credentials: true,
+  origin: '*',
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Ručné ošetrenie CORS pre preflight (OPTIONS) požiadavky
 app.options('*', cors());
 
 app.use(express.json());
