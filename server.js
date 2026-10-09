@@ -1,13 +1,12 @@
 import express from 'express';
-import cors from 'cors';
 
 const app = express();
 
-// Správne spracovanie CORS a Preflight požiadaviek z tvojej domény
+// Agresívne nastavenie CORS pre všetky domény a protokoly
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Headers', '*');
   
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
@@ -15,8 +14,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(cors());
 app.use(express.json());
+app.use(express.text());
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
@@ -83,7 +82,12 @@ app.get('/', (req, res) => {
 });
 
 app.post('/api/chat', async (req, res) => {
-  const { messages } = req.body || {};
+  let bodyData = req.body;
+  if (typeof bodyData === 'string') {
+    try { bodyData = JSON.parse(bodyData); } catch(e) {}
+  }
+
+  const messages = bodyData?.messages || [];
 
   try {
     const reply = await callGemini(messages);
