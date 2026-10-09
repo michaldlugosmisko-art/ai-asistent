@@ -3,19 +3,20 @@ import cors from 'cors';
 
 const app = express();
 
-app.use(cors());
+// Správne spracovanie CORS a Preflight požiadaviek z tvojej domény
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', '*');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
   next();
 });
 
+app.use(cors());
 app.use(express.json());
-app.use(express.text());
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
@@ -78,16 +79,11 @@ async function callGroq(messages) {
 }
 
 app.get('/', (req, res) => {
-  res.send('AI Backend beží v poriadku!');
+  res.send('Backend beží v poriadku!');
 });
 
 app.post('/api/chat', async (req, res) => {
-  let bodyData = req.body;
-  if (typeof bodyData === 'string') {
-    try { bodyData = JSON.parse(bodyData); } catch(e){}
-  }
-
-  const messages = bodyData?.messages || [];
+  const { messages } = req.body || {};
 
   try {
     const reply = await callGemini(messages);
