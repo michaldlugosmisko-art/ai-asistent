@@ -3,15 +3,18 @@ import cors from 'cors';
 
 const app = express();
 
-// Povolíme CORS pre úplne všetky domény aj lokálne protokoly
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Úplne voľné nastavenie pre lokálne testovanie aj produkciu
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', '*');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
-app.options('*', cors());
-
+app.use(cors());
 app.use(express.json());
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -77,7 +80,6 @@ async function callGroq(messages) {
 app.post('/api/chat', async (req, res) => {
   const { messages } = req.body;
 
-  // 1. Pokus: Gemini
   try {
     const reply = await callGemini(messages);
     if (reply) return res.json({ text: reply });
@@ -85,7 +87,6 @@ app.post('/api/chat', async (req, res) => {
     console.log('Gemini zlyhalo, prepínam na Groq...', err.message);
   }
 
-  // 2. Pokus: Groq (Llama 3.3)
   try {
     const reply = await callGroq(messages);
     if (reply) return res.json({ text: reply });
