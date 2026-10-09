@@ -2,7 +2,14 @@ import express from 'express';
 import cors from 'cors';
 
 const app = express();
-app.use(cors());
+
+// Povolíme CORS pre úplne všetky domény aj lokálne súbory (file://)
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -73,7 +80,7 @@ app.post('/api/chat', async (req, res) => {
     const reply = await callGemini(messages);
     if (reply) return res.json({ text: reply });
   } catch (err) {
-    console.log('Gemini vypadlo, prepínam na Groq...', err.message);
+    console.log('Gemini zlyhalo, prepínam na Groq...', err.message);
   }
 
   // 2. Pokus: Groq (Llama 3.3)
@@ -81,7 +88,7 @@ app.post('/api/chat', async (req, res) => {
     const reply = await callGroq(messages);
     if (reply) return res.json({ text: reply });
   } catch (err) {
-    console.log('Groq vypadlo...', err.message);
+    console.log('Groq zlyhalo...', err.message);
   }
 
   res.status(500).json({ error: 'Služba nedostupná' });
